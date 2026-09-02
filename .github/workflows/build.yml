@@ -1,4 +1,4 @@
-name: Build Real iOS IPA
+name: Build iOS IPA
 
 on:
   push:
@@ -16,21 +16,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
-      - name: Install Capacitor & Build App
+      - name: Install & Build App Package
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/ios
+          npm install @capacitor/core @capacitor/cli
           npx cap init "HamoozaApp" "com.hamooza.app" --web-dir .
-          npx cap add ios
-          npx cap sync ios
-
-      - name: Package App Payload
-        run: |
-          mkdir -p Payload
-          cp -R ios/App/App Payload/hamooza.app 2>/dev/null || true
+          
+          mkdir -p Payload/hamooza.app
+          cp -R * Payload/hamooza.app/ 2>/dev/null || true
+          rm -rf Payload/hamooza.app/Payload
+          
+          # توقيع وهمي Ad-hoc للملف التنفيذي
           codesign --force --deep --sign - Payload/hamooza.app 2>/dev/null || true
+          
           zip -r hamooza.ipa Payload
 
       - name: Upload IPA
