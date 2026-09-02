@@ -1,0 +1,22 @@
+name: Build IPA
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload/hamuza.app
+          cp index.html Payload/hamuza.app/
+          cp Info.plist Payload/hamuza.app/
+          zip -r hamuza.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: hamuza-ipa
+          path: hamuza.ipa
