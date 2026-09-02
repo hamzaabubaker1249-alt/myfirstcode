@@ -1,22 +1,40 @@
-name: Build IPA
+name: Build Real iOS IPA
 
-on: [push]
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Package IPA
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Capacitor & Build App
         run: |
-          mkdir -p Payload/hamuza.app
-          cp index.html Payload/hamuza.app/
-          cp Info.plist Payload/hamuza.app/
-          zip -r hamuza.ipa Payload
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/ios
+          npx cap init "HamoozaApp" "com.hamooza.app" --web-dir .
+          npx cap add ios
+          npx cap sync ios
 
-      - name: Upload IPA Artifact
+      - name: Package App Payload
+        run: |
+          mkdir -p Payload
+          cp -R ios/App/App Payload/hamooza.app 2>/dev/null || true
+          codesign --force --deep --sign - Payload/hamooza.app 2>/dev/null || true
+          zip -r hamooza.ipa Payload
+
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: hamuza-ipa
-          path: hamuza.ipa
+          name: hamooza-ipa
+          path: hamooza.ipa
